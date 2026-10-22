@@ -1,0 +1,8 @@
+{
+  "name": "Iron Veil multiplayer",
+  "image": "node:24-bookworm",
+  "forwardPorts": [4173],
+  "portsAttributes": {"4173": {"label": "Iron Veil", "onAutoForward": "openBrowser"}},
+  "containerEnv": {"HOST": "0.0.0.0", "PORT": "4173", "ALLOWED_ORIGINS": "https://ethanwiggains14-sketch.github.io"},
+  "postAttachCommand": "npm start"
+}

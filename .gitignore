@@ -1,0 +1,11 @@
+node_modules/
+qa-screenshots/
+*.tar
+*.tar.gz
+*.zip
+.DS_Store
+Thumbs.db
+.local/
+dist/server/
+dist/.openai/
+pages/
