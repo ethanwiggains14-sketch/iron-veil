@@ -27,7 +27,13 @@ Published project URL: `https://ethanwiggains14-sketch.github.io/iron-veil/`.
 4. To play in the GitHub Pages page instead, both players open **Multiplayer server / GitHub play** in the game menu, paste that same forwarded address and choose **Use this server**. Host a room and share its code. The Codespaces configuration permits only your Pages origin, plus its own forwarded game address.
 5. Keep the Codespace running during the match. Stopping it disconnects players. Rooms persist in `.local/rooms.sqlite` within that Codespace; the normal room expiry still applies. Reconnecting uses the browser's stored player token.
 
-Codespaces availability and included usage depend on the GitHub account. This project does not enable paid usage or change billing. A Codespace is an on-demand development host, not an always-on hosting guarantee.
+### Connection recovery in v1.9
+
+The host was observed stopping from inactivity while its game port was available. The server now writes a small diagnostic line once per minute of actual connected gameplay. GitHub counts terminal output as activity; forwarded browser traffic without output can otherwise time out. No synthetic traffic or timer is used, and idle lobbies or matches paused for a missing player do not keep it running. Active play consumes the account's normal Codespaces allowance.
+
+Reloading now retains the room and unacknowledged orders. A lost reply cannot repeat a purchase: the server acknowledges each order sequence once. Temporary hosting errors keep the player seat instead of incorrectly declaring the room expired. The match pauses after a human is absent for 12 seconds and resumes when they return. Rooms expire after 30 minutes without room activity, with a six-hour maximum lifetime. If the Codespace stops, open the owner resume link above; the database survives a process restart, but room expiry still applies.
+
+Codespaces availability and included usage depend on the GitHub account. This project does not enable paid usage or change billing. A Codespace has a maximum 12-hour running lifetime and is an on-demand development host, not an always-on hosting guarantee. See [GitHub's activity and timeout rules](https://docs.github.com/en/codespaces/setting-your-user-preferences/setting-your-timeout-period-for-github-codespaces).
 
 ## Dedicated server or LAN
 
@@ -58,6 +64,6 @@ npm run build:pages
 npm start
 ```
 
-`tests/browser-network.cjs` is the local SQLite battle regression: two clients approach through fog, exchange damage during preparation and preserve real-time simulation with 600 ms delayed replies. `tests/browser-online.cjs` checks room lifecycle, ownership, orders and reconnects. Browser tests need Playwright and a compatible browser; simulation/API tests use only Node.
+`tests/browser-network.cjs` is the local SQLite battle regression: two clients approach through fog, exchange damage during preparation and preserve real-time simulation with 600 ms delayed replies. `tests/browser-online.cjs` checks room lifecycle, ownership, orders and reconnects. `node tests/browser-reliability.cjs` starts its own isolated server on port 4180 and tests a developed four-faction match with 380 entities, 2,000 retired casualties, a lost acknowledgement, queued orders, proxy failure, reload and a process restart. Set `IRON_VEIL_SOAK_MS=300000` for five minutes of continued play after recovery. It never modifies the live room database. Browser tests need Playwright and a compatible browser; simulation/API tests use only Node.
 
 Official reference: [GitHub Pages](https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages), [Codespaces port sharing](https://docs.github.com/en/codespaces/developing-in-a-codespace/forwarding-ports-in-your-codespace).

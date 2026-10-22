@@ -10,6 +10,14 @@ A military real-time strategy game. Build and defend your headquarters, develop 
 
 Server address: `https://congenial-space-funicular-wvxjqj6v9qgxfg947-4173.app.github.dev/`. Full hosting instructions: [GITHUB.md](GITHUB.md).
 
+## Long-match connection recovery — v1.9
+
+Large battles now discard retired casualties from room checkpoints, serialize simultaneous room requests on the Node server, compress network snapshots and spread expensive simulation catch-up across requests. The room panel reports remaining catch-up and pending orders. Existing rooms, fog, ownership, saves and all gameplay systems are preserved.
+
+Unacknowledged orders survive temporary outages and page reloads. Commands retry with their original sequence numbers, so a lost reply cannot buy an upgrade twice. Reconnection distinguishes an unavailable hosting proxy from an expired room; it backs off during failures and wakes when the network or tab returns. A paused room no longer floods the server while retaining queued orders. Keep using the same browser and do not clear its site storage.
+
+The GitHub server reports actual connected match activity once per minute. This lets Codespaces recognize real gameplay instead of silently stopping its otherwise quiet forwarded port. Idle lobbies and disconnected matches do not generate activity. Codespaces still has account usage and session-lifetime limits; it is not permanent hosting. If it stops, reopen the owner's Codespace and allow both browsers to reconnect. See [GITHUB.md](GITHUB.md).
+
 ## Multiplayer reliability and GitHub — v1.8
 
 Both human players now fight equally during the ten-minute AI preparation period. Current sight is refreshed before room snapshots, and transient combat effects survive the next player's poll. New tests bring two actual browser-controlled armies through fog and verify mutual visibility and damage with delayed network replies.

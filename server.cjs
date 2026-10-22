@@ -1,5 +1,16 @@
 'use strict';
 const http=require('node:http'),fs=require('node:fs'),path=require('node:path');
+const {gzip}=require('node:zlib'),{promisify}=require('node:util'),compress=promisify(gzip);
+// One writer per room prevents both players recomputing the same battle after CAS conflicts.
+// SQLite remains authoritative and is saved before every successful reply.
+const roomJobs=new Map(),reportActivity=require('./scripts/server-activity.cjs')();
+async function inRoom(code,job){
+ const key=/^[A-F0-9]{10}$/.test(code)?code:null;if(!key)return job();
+ let entry=roomJobs.get(key);if(!entry){entry={tail:Promise.resolve(),count:0};roomJobs.set(key,entry);}
+ if(entry.count>=8)return Response.json({error:'Room is busy; retrying is safe.'},{status:429});
+ entry.count++;const previous=entry.tail;let release;entry.tail=new Promise(r=>release=r);
+ await previous;try{return await job();}finally{release();if(--entry.count===0)roomJobs.delete(key);}
+}
 const root=path.join(__dirname,'dist'),port=Number(process.env.PORT||4173),host=process.env.HOST||'127.0.0.1';
 const createDB=require('./scripts/local-db.cjs');fs.mkdirSync(path.join(__dirname,'.local'),{recursive:true});
 const DB=createDB(process.env.IRON_VEIL_TEST_DB||path.join(__dirname,'.local/rooms.sqlite')),online=import('./worker/multiplayer.mjs');
@@ -18,7 +29,17 @@ const server=http.createServer(async(req,res)=>{
    // Origin checked above. Keep the shared Worker strict by default.
    const headers={...req.headers};delete headers.origin;delete headers['cf-connecting-ip'];headers['cf-connecting-ip']=req.socket.remoteAddress||'local';
    const request=new Request('http://'+req.headers.host+req.url,{method:req.method,headers,...(req.method==='POST'?{body:Buffer.concat(chunks)}:{})});
-   const response=await(await online).multiplayer(request,{DB});res.writeHead(response.status,{...Object.fromEntries(response.headers),...cors});res.end(Buffer.from(await response.arrayBuffer()));
+   let roomCode='';try{roomCode=JSON.parse(Buffer.concat(chunks).toString()).code?.trim().toUpperCase()||'';}catch{}
+   const started=performance.now();
+   const response=await inRoom(roomCode,async()=>{const m=await online;return m.multiplayer(request,{DB});});
+   let body=Buffer.from(await response.arrayBuffer());const responseHeaders={...Object.fromEntries(response.headers),...cors};
+   // Report real, authenticated match traffic once a minute. Codespaces counts
+   // terminal output as activity; a quiet forwarded port alone does not count.
+   // No timer or synthetic traffic: idle lobbies and disconnected matches stay idle.
+   reportActivity(response.ok,body,performance.now()-started);
+   if(body.length>1024&&/\bgzip\b/.test(req.headers['accept-encoding']||'')){body=await compress(body,{level:1});responseHeaders['Content-Encoding']='gzip';responseHeaders.Vary=origin?'Origin, Accept-Encoding':'Accept-Encoding';}
+   responseHeaders['Server-Timing']='room;dur='+Math.round(performance.now()-started);
+   if(!res.destroyed){res.writeHead(response.status,responseHeaders);res.end(body);}
   }catch(e){console.error(e.message);res.writeHead(500,cors);res.end('Server error');}return;
  }
  const target=path.resolve(root,'.'+(pathname==='/'?'/index.html':pathname));

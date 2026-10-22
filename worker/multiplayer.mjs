@@ -14,11 +14,15 @@ const maps=new Map();
 function baseTiles(g){const key=[g.seed,g.biome,g.width,g.height,g.teams.length].join(':');if(!maps.has(key)){const fresh=new Game({seed:g.seed,biome:g.biome,opponents:g.teams.length-1,mapSize:g.width===96?'classic':g.width===192?'expansive':undefined});if(maps.size>=6)maps.delete(maps.keys().next().value);maps.set(key,fresh.tiles);}return maps.get(key);}
 function tileChanges(g){const base=baseTiles(g),changes=[];for(let y=0;y<g.height;y++)for(let x=0;x<g.width;x++){const a=g.tiles[y][x],b=base[y]?.[x];if(!b||a.type!==b.type||a.elevation!==b.elevation||a.cleared!==b.cleared||a.clearWork!==b.clearWork||a.resource?.amount!==b.resource?.amount||a.resource?.type!==b.resource?.type)changes.push({x,y,tile:a});}return changes;}
 export function persist(g,meta){
+ // Casualties have already released crews, perches and HQ ownership in _kill.
+ // Their visual effects are independent; retaining corpses makes every future scan grow.
+ g.entities=g.entities.filter(e=>e.hp>0);
  const game={};for(const key of ['aiStates','intel','preparationDuration','width','height','seed','difficulty','biome','time','paused','winner','entities','teams','events','charges','tunnels','scans','nextId','nextEventId'])game[key]=g[key];
  Object.assign(game,{version:3,rng:g._rng,aiWave:g._aiWave,nextRaid:g._nextRaid,aiUpgradeReady:g._aiUpgradeReady||0,tilePatches:tileChanges(g)});
  return {game:structuredClone(game),runtime:{fog:g._fogTimer,ai:g._aiTimer,economy:g._economyTimer,revision:g._pathRevision,explored:g.onlineExplored.map(bits),effects:g.effects},meta};
 }
 export function hydrate(data){const s=data.game,r=data.runtime,g=Object.assign(Object.create(Game.prototype),s,{_rng:s.rng,_aiWave:s.aiWave,_nextRaid:s.nextRaid,_aiUpgradeReady:s.aiUpgradeReady,_fogTimer:r.fog,_aiTimer:r.ai,_economyTimer:r.economy,_pathRevision:r.revision,_terrainChanges:[],effects:r.effects||[],humanOwners:[0,1]});
+ g.entities=g.entities.filter(e=>e.hp>0);
  if(!s.tiles){g.tiles=baseTiles(g).map(row=>row.map(t=>({...t,...(t.resource?{resource:{...t.resource}}:{})})));for(const p of s.tilePatches||[])g.tiles[p.y][p.x]=structuredClone(p.tile);}
  g.onlineExplored=r.explored.map(b=>unbits(b,g.width,g.height));g.explored=g.onlineExplored[0];g._updateFog();return g;}
 function observe(g){for(let owner=0;owner<2;owner++)for(let y=0;y<g.height;y++)for(let x=0;x<g.width;x++)if(g._visibility[owner][y][x])g.onlineExplored[owner][y][x]=true;}
@@ -70,16 +74,23 @@ export async function multiplayer(request,env){
   const code=String(input.code||'').trim().toUpperCase();if(!/^[A-F0-9]{10}$/.test(code))return json({error:'Enter the ten-character room code.'},400);
   const bearer=request.headers.get('Authorization')?.replace(/^Bearer /,'')||'',hash=bearer?await digest(bearer):'';
   for(let attempt=0;attempt<5;attempt++){
-   const room=await db.prepare('SELECT * FROM rooms WHERE code=?').bind(code).first();if(!room||room.expires<now)return json({error:'Room not found or expired.'},404);
+   const room=await db.prepare('SELECT * FROM rooms WHERE code=?').bind(code).first();if(!room||room.expires<now)return json({error:'Room not found or expired.',code:'ROOM_EXPIRED'},404);
    const data=await decode(room.payload),meta=data.meta;let seat=room.host_hash===hash?0:room.guest_hash&&room.guest_hash===hash?1:-1,token=null;
    if(action==='join'){if(meta.status!=='waiting'||room.guest_hash)return json({error:'This room is already full or has started.'},409);seat=1;token=random();meta.joined=true;meta.lastSeen[1]=now;}
-   else if(seat<0)return json({error:'Your room session is invalid. Rejoin with the room code.'},401);
+   else if(seat<0)return json({error:'Your room session is invalid. Rejoin with the room code.',code:'SESSION_INVALID'},401);
    const g=hydrate(data);meta.lastSeen[seat]=now;
    if(action==='start'){if(seat!==0)return json({error:'Only the host can start the match.'},403);if(!meta.joined)return json({error:'Wait for your friend to join.'},409);if(meta.status==='waiting'){meta.status='playing';meta.lastTick=now;}}
    if(action==='leave'){if(meta.status==='waiting')meta.status='closed';else if(!g.teams[seat].eliminated){const hq=g._buildings(seat,'hq')[0];if(hq)g._kill(hq);}}
    if(!['join','start','leave','tick'].includes(action))return json({error:'Unknown room action.'},404);
    const waitingForConnection=[0,1].some(i=>!g.teams[i].eliminated&&now-meta.lastSeen[i]>12000);
-   if(meta.status==='playing'&&!waitingForConnection){g.paused=false;g.update(Math.max(0,Math.min(12,(now-meta.lastTick)/1000)));}
+   if(meta.status==='playing'&&!waitingForConnection){
+    g.paused=false;
+    // Bound catch-up CPU, not ordinary game speed. Carry unfinished time to later polls.
+    let debt=Math.min(12,(meta.simDebt||0)+Math.max(0,(now-meta.lastTick)/1000));
+    const deadline=performance.now()+45;
+    do{const step=Math.min(.1,debt);g.update(step);debt-=step;}while(debt>1e-6&&g.winner===null&&performance.now()<deadline);
+    meta.simDebt=g.winner===null?Math.max(0,debt):0;
+   }else meta.simDebt=0;
    // A concurrent request may have started earlier than the latest committed tick.
    meta.lastTick=Math.max(meta.lastTick,now);
    const commands=Array.isArray(input.commands)?input.commands.slice(0,8):[];
@@ -87,7 +98,7 @@ export async function multiplayer(request,env){
    if(g.winner!==null)meta.status='finished';g._updateFog();observe(g);
    const updated=await db.prepare('UPDATE rooms SET guest_hash=?,expires=?,revision=revision+1,payload=? WHERE code=? AND revision=?').bind(token?await digest(token):room.guest_hash,Math.min(room.created+21600000,now+1800000),await encode(persist(g,meta)),code,room.revision).run();
    if(!updated.meta.changes)continue;
-   return json({code,seat,...(token?{token}:{}),status:meta.status,joined:meta.joined,waitingForConnection,seq:meta.lastSeq[seat],results:meta.results[seat],revision:room.revision+1,...(meta.status==='playing'||meta.status==='finished'?{state:view(g,seat)}:{})});
+   return json({code,seat,...(token?{token}:{}),status:meta.status,joined:meta.joined,waitingForConnection,lagSeconds:Math.round((meta.simDebt||0)*10)/10,seq:meta.lastSeq[seat],results:meta.results[seat],revision:room.revision+1,...(meta.status==='playing'||meta.status==='finished'?{state:view(g,seat)}:{})});
   }
   return json({error:'Room is busy; retrying is safe.'},409);
  }catch(error){console.error('Multiplayer request failed',error?.message);return json({error:'The room server could not complete this request. Please retry.'},500);}
