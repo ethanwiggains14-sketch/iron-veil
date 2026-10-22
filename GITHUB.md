@@ -25,7 +25,7 @@ Published project URL: `https://ethanwiggains14-sketch.github.io/iron-veil/`.
 2. Open **Ports**. For port 4173, choose **Port Visibility → Public** so your friend can reach the game. This exposes the game service; room ownership still requires its random room code and private player token.
 3. Copy port 4173's **Forwarded Address**. The simplest option is for both players to open that address and use **Host friend match / Join** as usual.
 4. To play in the GitHub Pages page instead, both players open **Multiplayer server / GitHub play** in the game menu, paste that same forwarded address and choose **Use this server**. Host a room and share its code. The Codespaces configuration permits only your Pages origin, plus its own forwarded game address.
-5. Keep the Codespace running during the match. Stopping it disconnects players. Rooms persist in `.local/rooms.sqlite` within that Codespace; the normal room expiry still applies. Reconnecting uses the browser's stored player token.
+5. Keep the Codespace running during the match. Stopping it disconnects players. **After restarting the Codespace, set port 4173 back to Public in Ports → Port Visibility**: GitHub resets public ports to Private on restart. Rooms persist in `.local/rooms.sqlite` within that Codespace; the normal room expiry still applies. Reconnecting uses the browser's stored player token.
 
 ### Connection recovery in v1.9
 
@@ -33,7 +33,7 @@ The host was observed stopping from inactivity while its game port was available
 
 Reloading now retains the room and unacknowledged orders. A lost reply cannot repeat a purchase: the server acknowledges each order sequence once. Temporary hosting errors keep the player seat instead of incorrectly declaring the room expired. The match pauses after a human is absent for 12 seconds and resumes when they return. Rooms expire after 30 minutes without room activity, with a six-hour maximum lifetime. If the Codespace stops, open the owner resume link above; the database survives a process restart, but room expiry still applies.
 
-Codespaces availability and included usage depend on the GitHub account. This project does not enable paid usage or change billing. A Codespace has a maximum 12-hour running lifetime and is an on-demand development host, not an always-on hosting guarantee. See [GitHub's activity and timeout rules](https://docs.github.com/en/codespaces/setting-your-user-preferences/setting-your-timeout-period-for-github-codespaces).
+Codespaces availability and included usage depend on the GitHub account. This project does not enable paid usage or change billing. A Codespace has a maximum 12-hour running lifetime and is an on-demand development host, not an always-on hosting guarantee. See [GitHub's activity and timeout rules](https://docs.github.com/en/codespaces/setting-your-user-preferences/setting-your-timeout-period-for-github-codespaces) and [public-port reset behavior](https://docs.github.com/en/codespaces/reference/security-in-github-codespaces#port-forwarding).
 
 ## Dedicated server or LAN
 
