@@ -2,6 +2,14 @@
 
 A military real-time strategy game. Build and defend your headquarters, develop a combined-arms force, scout the map, and be the last commander standing. Play solo against 1–3 AI commanders, or host an online match for yourself and a friend with 0–2 additional AI rivals.
 
+## Play now
+
+- [Play on GitHub Pages](https://ethanwiggains14-sketch.github.io/iron-veil/) for solo games. For multiplayer, open **Multiplayer server / GitHub play**, paste the server address below and choose **Use this server** on both players' browsers.
+- [Open the friend-match server](https://congenial-space-funicular-wvxjqj6v9qgxfg947-4173.app.github.dev/) to host or join directly. Share that link and the room code with your friend; no private Site viewer invitation is needed. GitHub may show a one-time development-port notice.
+- The owner must keep [the game Codespace](https://github.com/codespaces/congenial-space-funicular-wvxjqj6v9qgxfg947) running during matches. Resume it there if the server link is unavailable. Codespaces has account usage limits and can stop when idle; it is not permanent hosting. No billing changes were made.
+
+Server address: `https://congenial-space-funicular-wvxjqj6v9qgxfg947-4173.app.github.dev/`. Full hosting instructions: [GITHUB.md](GITHUB.md).
+
 ## Multiplayer reliability and GitHub — v1.8
 
 Both human players now fight equally during the ten-minute AI preparation period. Current sight is refreshed before room snapshots, and transient combat effects survive the next player's poll. New tests bring two actual browser-controlled armies through fog and verify mutual visibility and damage with delayed network replies.
@@ -97,7 +105,7 @@ Select a force to see its next upgrade's cost and key before/after values. **See
 
 Open the delivered `IRON-VEIL.html` in a current desktop browser, or open `dist/index.html` from the source archive. The game runs locally without installation, external assets, an account, or a build step. Choose a battlefield and difficulty, then select **Deploy task force**. Use the in-game **?** button for the field manual.
 
-For a local web preview of the source, use Node 24+ and run `node server.cjs`, then open `http://127.0.0.1:4173`. This includes a SQLite-backed room server for local testing. Run `node export.cjs <output-file.html>` to regenerate the portable solo game from the same source. `npm run build` bundles the existing assets and authoritative server into a Worker; hosted rooms use the `DB` D1 binding and schema migration in `drizzle/`. No client secrets or paid third-party multiplayer broker are required.
+For a local web preview of the source, use Node 24+ and run `node server.cjs`, then open `http://127.0.0.1:4173`. This includes a SQLite-backed room server for local testing. Run `node export.cjs <output-file.html>` to regenerate the portable solo game from the same source. `npm run build` (or `npm run build:pages`) prepares the static GitHub Pages files. `npm start` runs the authoritative Node/SQLite multiplayer service. No client secrets or paid third-party multiplayer broker are required.
 
 Mouse and keyboard are recommended. Headphones are optional; gameplay information is visual.
 

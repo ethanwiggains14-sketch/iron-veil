@@ -2,6 +2,14 @@
 
 The same game supports GitHub Pages for the browser and a Node 24 server for friend matches. No paid libraries or API keys are required. GitHub Pages is static hosting: it cannot run the room simulation or SQLite database itself.
 
+## Published links
+
+- [GitHub Pages game](https://ethanwiggains14-sketch.github.io/iron-veil/)
+- [Friend-match server](https://congenial-space-funicular-wvxjqj6v9qgxfg947-4173.app.github.dev/)
+- [Resume the owner’s Codespace](https://github.com/codespaces/congenial-space-funicular-wvxjqj6v9qgxfg947)
+
+Pages deployment and all 104 tests passed on GitHub on October 22, 2026. Two independent, unsigned-in browsers played through the Pages URL using this server: both armies saw and damaged one another during preparation, with no browser errors (31.088 game seconds / 30.23 wall seconds). The server port is Public and runs only the game service. Keep the Codespace running for matches; no billing settings were changed.
+
 ## GitHub Pages
 
 1. Put this project in `ethanwiggains14-sketch/iron-veil` on branch `main`.
@@ -9,7 +17,7 @@ The same game supports GitHub Pages for the browser and a Node 24 server for fri
 3. Run **Actions → Publish game to GitHub Pages**, or push a change to `main`.
 4. The workflow runs the simulation/API tests and publishes only the eight browser assets. Open the resulting Pages link to play solo immediately.
 
-Expected project URL after a successful Pages deployment: `https://ethanwiggains14-sketch.github.io/iron-veil/`.
+Published project URL: `https://ethanwiggains14-sketch.github.io/iron-veil/`.
 
 ## Friend matches using GitHub Codespaces
 
