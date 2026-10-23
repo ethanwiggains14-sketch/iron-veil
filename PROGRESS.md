@@ -7,7 +7,9 @@
 - [x] Polling scales to 250/375/500 ms for 2/3/4 humans, keeping ordinary aggregate traffic bounded. Orders remain immediate; movement is interpolated.
 - [x] 118 regression tests and four-browser live combat. All four saw and damaged opposing troops.
 - [x] Five-minute four-browser soak: 380 live entities and 2,000 retired casualties; lost paid-order reply, proxy 404, reload and Node process restart. 302.224 game seconds / 301.084 wall seconds, p95 RTT 171 ms including a 120 ms injected delay; no browser errors.
-- [ ] Deployment acceptance.
+- [x] Published application commit fdd544f0cff4c57ec82fd1805782c7d988a3c171. Pages workflow 39887001303 succeeded; existing Node server runs v1.10 with its persistent database and public port. Actual GitHub Pages + server four-browser acceptance passed: all four armies saw and damaged enemies, 30.591 game seconds / 28.505 wall seconds, no browser errors.
+
+Next: gather real four-friend feedback. Disconnected living players pause the room until returning; host removal of an absent player is not implemented. Room size is fixed when hosted. Hosting and Internet availability remain external limits.
 
 The public host must remain running and port 4173 Public. Network interruptions, Codespaces quotas/stops and room expiry remain external limits; zero lag or zero bugs cannot be guaranteed. Do not clear browser storage while reconnecting.
 
