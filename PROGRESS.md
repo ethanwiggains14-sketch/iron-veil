@@ -1,3 +1,16 @@
+# Iron Veil v1.10 — four human commanders
+
+- [x] Audited existing four-faction engine, two-seat room restrictions, fog, credentials and hosting.
+- [x] Host reserves 2–4 human seats with optional AI to four total factions. Every human has an independent army, bank, fog and persistent sequence acknowledgements.
+- [x] Concurrent joins allocate unique seats; lost join replies recover the same seat. Guests leaving the lobby release their slot. All reserved humans must connect before starting.
+- [x] Reconnection and final-survivor victory cover every seat; defeated humans do not pause survivors. Existing two-human rooms retain their tokens and state without a database migration.
+- [x] Polling scales to 250/375/500 ms for 2/3/4 humans, keeping ordinary aggregate traffic bounded. Orders remain immediate; movement is interpolated.
+- [x] 118 regression tests and four-browser live combat. All four saw and damaged opposing troops.
+- [x] Five-minute four-browser soak: 380 live entities and 2,000 retired casualties; lost paid-order reply, proxy 404, reload and Node process restart. 302.224 game seconds / 301.084 wall seconds, p95 RTT 171 ms including a 120 ms injected delay; no browser errors.
+- [ ] Deployment acceptance.
+
+The public host must remain running and port 4173 Public. Network interruptions, Codespaces quotas/stops and room expiry remain external limits; zero lag or zero bugs cannot be guaranteed. Do not clear browser storage while reconnecting.
+
 # Iron Veil v1.9 — long-match reliability
 
 Continues the original project, preserving all existing game systems, saves, ownership and fog.

@@ -36,20 +36,21 @@
 
   const online=new OnlineMatch({
     status(message){$('onlineStatus').textContent=message;roomStatus=message;if(onlineGame)$('status').textContent='RECONNECTING';},
-    room(room){$('roomDetails').hidden=false;$('activeRoomCode').textContent=room.code;$('startRoom').hidden=room.seat!==0||!room.joined||room.status!=='waiting';$('hostRoom').disabled=true;$('joinRoom').disabled=true;roomStatus=room.waitingForConnection?'Waiting for disconnected player — match paused':room.status==='waiting'?(room.joined?'Your friend joined. Host can start the match.':'Waiting for your friend. Share this code.'):'Online match · '+room.code+' · '+room.rtt+' ms'+(room.rtt>800?' · slow network':'')+(room.lagSeconds>0.5?' · syncing '+room.lagSeconds+'s':'')+(room.pendingOrders?' · '+room.pendingOrders+' orders pending':'');$('onlineStatus').textContent=roomStatus;},
+    room(room){$('roomDetails').hidden=false;$('activeRoomCode').textContent=room.code;$('startRoom').hidden=room.seat!==0||!room.joined||room.status!=='waiting';$('startRoom').disabled=room.players?.some(p=>!p.connected)||false;$('roomRoster').textContent=(room.players||[]).map(p=>'Player '+(p.seat+1)+(p.seat===room.seat?' (you)':'')+': '+(p.eliminated?'eliminated':!p.occupied?'open seat':p.connected?'ready':'reconnecting')).join(' · ');$('hostRoom').disabled=true;$('joinRoom').disabled=true;roomStatus=room.waitingForConnection?'Waiting for disconnected player — match paused':room.status==='waiting'?(room.joined?'All players joined. Host can start when everyone is connected.':'Waiting for friends to fill the reserved seats. Share this code.'):'Online match · '+room.code+' · '+room.rtt+' ms'+(room.rtt>800?' · slow network':'')+(room.lagSeconds>0.5?' · syncing '+room.lagSeconds+'s':'')+(room.pendingOrders?' · '+room.pendingOrders+' orders pending':'');$('onlineStatus').textContent=roomStatus;},
     result(answer){toast(answer.message,answer.ok?'success':'danger');if(answer.ok&&answer.entityId)setSelection([answer.entityId]);},
     state(state,room){
       const first=!onlineGame;if(first){startOperation({online:true,seed:state.seed,biome:state.biome,opponents:state.opponents});onlineGame=true;for(const method of ['build','buildWallLine','clearArea','train','produce','upgrade','upgradeGroup','command','crew','uncrew','ability','demolish'])game[method]=(...args)=>online.send(method,args);}
       OnlineMatch.apply(game,state);if(first)home();syncPause();if(state.winner!==null||state.teams[0].eliminated)showResult();
     },
-    closed(){onlineGame=false;$('roomDetails').hidden=true;$('hostRoom').disabled=false;$('joinRoom').disabled=false;['pauseButton','speedButton','saveButton'].forEach(id=>$(id).disabled=false);$('onlineStatus').textContent='Room left. Create or join another match.';if(started){started=false;game.paused=true;$('resultOverlay').hidden=true;showMenu();}}
+    closed(){$('roomRoster').textContent='';onlineGame=false;$('roomDetails').hidden=true;$('hostRoom').disabled=false;$('joinRoom').disabled=false;['pauseButton','speedButton','saveButton'].forEach(id=>$(id).disabled=false);$('onlineStatus').textContent='Room left. Create or join another match.';if(started){started=false;game.paused=true;$('resultOverlay').hidden=true;showMenu();}}
   });
   globalThis.ironVeil.online=online;
   const onlineAction=fn=>async()=>{try{await fn();}catch(e){$('onlineStatus').textContent=e.message;toast(e.message,'danger');}};
   $('serverUrl').value=online.backend;
   $('saveServer').onclick=onlineAction(async()=>{online.configure($('serverUrl').value);$('serverUrl').value=online.backend;$('onlineStatus').textContent=online.backend?'Server set. Share this server URL and room code with your friend.':'Using this website’s room server.';});
   if(location.hostname.endsWith('.github.io'))$('onlineStatus').textContent='Solo play is ready. For friend matches, set your multiplayer server URL above.';
-  $('hostRoom').onclick=onlineAction(()=>online.create($('biomeSelect').value,Number($('onlineAI').value)));
+  $('onlineHumans').onchange=()=>{const max=4-Number($('onlineHumans').value);for(const option of $('onlineAI').options)option.disabled=Number(option.value)>max;if(Number($('onlineAI').value)>max)$('onlineAI').value=String(max);};
+  $('hostRoom').onclick=onlineAction(()=>online.create($('biomeSelect').value,Number($('onlineAI').value),Number($('onlineHumans').value)));
   $('joinRoom').onclick=onlineAction(()=>online.join($('roomCode').value.trim().toUpperCase()));
   $('startRoom').onclick=onlineAction(()=>online.start());
   $('leaveRoom').onclick=onlineAction(()=>online.leave());

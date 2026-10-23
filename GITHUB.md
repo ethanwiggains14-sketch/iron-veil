@@ -23,9 +23,13 @@ Published project URL: `https://ethanwiggains14-sketch.github.io/iron-veil/`.
 
 1. In the repository, choose **Code → Codespaces → Create codespace on main**. The included development container uses Node 24, starts `npm start`, and forwards port **4173**. If the server is stopped, run `npm start` in its terminal.
 2. Open **Ports**. For port 4173, choose **Port Visibility → Public** so your friend can reach the game. This exposes the game service; room ownership still requires its random room code and private player token.
-3. Copy port 4173's **Forwarded Address**. The simplest option is for both players to open that address and use **Host friend match / Join** as usual.
-4. To play in the GitHub Pages page instead, both players open **Multiplayer server / GitHub play** in the game menu, paste that same forwarded address and choose **Use this server**. Host a room and share its code. The Codespaces configuration permits only your Pages origin, plus its own forwarded game address.
+3. Copy port 4173's **Forwarded Address**. The simplest option is for all players to open that address and use **Host friend match / Join** as usual.
+4. To play in the GitHub Pages page instead, all players open **Multiplayer server / GitHub play** in the game menu, paste that same forwarded address and choose **Use this server**. Host a room and share its code. The Codespaces configuration permits only your Pages origin, plus its own forwarded game address.
 5. Keep the Codespace running during the match. Stopping it disconnects players. **After restarting the Codespace, set port 4173 back to Public in Ports → Port Visibility**: GitHub resets public ports to Private on restart. Rooms persist in `.local/rooms.sqlite` within that Codespace; the normal room expiry still applies. Reconnecting uses the browser's stored player token.
+
+### Four-player matches in v1.10
+
+Choose **Human players → You + 3 friends**, host the room, and share its code with all three friends. All four must open the same server (or configure that server in Pages). The host starts when all four seats show ready. For mixed matches, reserve two or three human seats and fill remaining slots with optional AI. Refresh the page to load this version before joining.
 
 ### Connection recovery in v1.9
 

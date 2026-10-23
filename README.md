@@ -1,14 +1,20 @@
 # IRON VEIL — Below the Front
 
-A military real-time strategy game. Build and defend your headquarters, develop a combined-arms force, scout the map, and be the last commander standing. Play solo against 1–3 AI commanders, or host an online match for yourself and a friend with 0–2 additional AI rivals.
+A military real-time strategy game. Build and defend your headquarters, develop a combined-arms force, scout the map, and be the last commander standing. Play solo against 1–3 AI commanders, or host an online match for 2–4 humans with optional AI up to four total factions.
 
 ## Play now
 
-- [Play on GitHub Pages](https://ethanwiggains14-sketch.github.io/iron-veil/) for solo games. For multiplayer, open **Multiplayer server / GitHub play**, paste the server address below and choose **Use this server** on both players' browsers.
+- [Play on GitHub Pages](https://ethanwiggains14-sketch.github.io/iron-veil/) for solo games. For multiplayer, open **Multiplayer server / GitHub play**, paste the server address below and choose **Use this server** on all players’ browsers.
 - [Open the friend-match server](https://congenial-space-funicular-wvxjqj6v9qgxfg947-4173.app.github.dev/) to host or join directly. Share that link and the room code with your friend; no private Site viewer invitation is needed. GitHub may show a one-time development-port notice.
 - The owner must keep [the game Codespace](https://github.com/codespaces/congenial-space-funicular-wvxjqj6v9qgxfg947) running during matches. Resume it there if the server link is unavailable. Codespaces has account usage limits and can stop when idle; it is not permanent hosting. No billing changes were made.
 
 Server address: `https://congenial-space-funicular-wvxjqj6v9qgxfg947-4173.app.github.dev/`. Full hosting instructions: [GITHUB.md](GITHUB.md).
+
+## Four-player friend matches — v1.10
+
+Host up to four humans, or mix humans and AI within four total factions. Share one code with every friend. The lobby lists each player and waits until everyone is connected. A guest leaving before start frees their seat; leaving after start surrenders their faction. An active disconnected player pauses the battle until reconnecting. Defeated players do not block the survivors. Only the final surviving headquarters wins.
+
+Private credentials, separate fog and reliable order acknowledgements apply to every seat. Reload reconnects your seat and pending orders; interrupted joins recover their original seat. Four-player polling is capped at two ordinary snapshots per second per player, with interpolated movement and immediate order submission. Internet and hosting interruptions remain possible.
 
 ## Long-match connection recovery — v1.9
 
@@ -54,7 +60,7 @@ Open the hosted game, choose **Play with a friend → Host friend match**, and s
 
 Online games run on the server with separate player ownership and fog. The host selects the biome and 0–2 AI rivals; online difficulty is Regular and preparation lasts ten minutes. Both human players start with equal resources. Refreshing reconnects the same browser to its seat. Menus do not pause online games; if an active human disconnects for more than 12 seconds, the shared simulation pauses until reconnection. Leave room / surrender eliminates your faction. Only the final surviving headquarters wins, even if the first faction eliminated is the host. A defeated player may inspect the battlefield while remaining factions fight.
 
-Online rooms expire after 30 minutes without activity and have a six-hour maximum lifespan. Keep the browser's local storage to reconnect. Online progress is stored by the server; the solo save/load and speed controls are disabled during online matches. The downloadable HTML remains fully playable solo but cannot host network rooms. Online simulation speed depends on network/server response time; this version supports two humans, with up to two AI opponents.
+Online rooms expire after 30 minutes without activity and have a six-hour maximum lifespan. Keep the browser's local storage to reconnect. Online progress is stored by the server; the solo save/load and speed controls are disabled during online matches. The downloadable HTML remains fully playable solo but cannot host network rooms. Online simulation speed depends on network/server response time; this version supports 2–4 humans with optional AI up to four total factions.
 
 New maps are **144 × 108 (15,552 tiles)**: 44% fewer tiles than the prior expansive maps while retaining long strategic routes and large oceans. Temperate maps have western seas, wooded river valleys and crossings; desert maps have a central lake, rocky mesas and a southern land route; tundra maps have branching fjords, snowy peninsulas and causeways. Seeds vary coastlines, ridges, forests and islands. Existing 192×144, 96×72 and 56×44 saves retain their original maps.
 
